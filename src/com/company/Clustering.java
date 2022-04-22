@@ -34,7 +34,7 @@ public class Clustering {
      */
     public void preprocess(String[] docs) {
 
-        for(int i = 0 ; i < numClusters ; i++){
+        for (int i = 0; i < numClusters; i++) {
             clusters[i] = new ArrayList<>();
         }
         //TO BE COMPLETED
@@ -85,7 +85,6 @@ public class Clustering {
         }
 
 
-
         System.out.println(docList.length);
 
         for (Doc doc : docList) {
@@ -107,44 +106,79 @@ public class Clustering {
     public void cluster() {
         //TO BE COMPLETED
 
-        for (int i = 0 ; i < docList.length ; i++ ) {
-            double distToCentroid1 = calcDistance(docList[i], centroids[0]);
-            double distToCentroid2 = calcDistance(docList[i], centroids[1]);
-            if (distToCentroid1 > distToCentroid2) {
-                clusters[0].add(docList[i]);
-            }else{
-                clusters[1].add(docList[i]);
+
+        boolean iterationCheck1 = true;
+        boolean iterationCheck2 = true;
+        int iteration = 1;
+        while (iterationCheck1 || iterationCheck2) {
+
+            System.out.println("Iteration " + iteration);
+            System.out.println("Centroid 0 " + centroids[0]);
+            System.out.println("Centroid 1 " + centroids[1]);
+            System.out.println("\n\n");
+
+            clusters[0] = new ArrayList();
+            clusters[1] = new ArrayList();
+            double distToCentroid0 = 0.0;
+            double distToCentroid1 = 0.0;
+            for (int i = 0; i < docList.length; i++) {
+                distToCentroid0 = calcDistance(docList[i], centroids[0]);
+                distToCentroid1 = calcDistance(docList[i], centroids[1]);
+
+
+                if (distToCentroid0 > distToCentroid1) {
+                    clusters[0].add(docList[i]);
+                } else if (distToCentroid0 < distToCentroid1) {
+                    clusters[1].add(docList[i]);
+                }
+            }
+
+            // previous centroids
+            double[] prevCentroids0 = centroids[0].termVec;
+            double[] prevCentroids1 = centroids[1].termVec;
+
+            // updated centroids
+            centroids[0] = calcCentroid(clusters[0]);
+            centroids[1] = calcCentroid(clusters[1]);
+
+            iterationCheck1 = compareCentroids(prevCentroids0, centroids[0].termVec);
+            iterationCheck2 = compareCentroids(prevCentroids1, centroids[1].termVec);
+
+            iteration++;
+        }
+    }
+
+    /**
+     * compare the centroids to check if it remains same from the previous centroids.
+     * It determines if iteration needs to stop or continue
+     */
+    public boolean compareCentroids(double[] currentCentroid, double[] prevCentroid) {
+
+        boolean check = false;
+        for (int j = 0; j < vSize; j++) {
+            if (currentCentroid[j] != prevCentroid[j]){
+                check = true;
+                return check;
             }
         }
-
-
-        System.out.println("Cluster 0: " + clusters[0]);
-        System.out.println("Cluster 1: " + clusters[1]);
-
-
-        System.out.println("Updated Centroid");
-        System.out.println(calcCentroid( clusters[0] ));
-        System.out.println(calcCentroid( clusters[1] ));
-
-
-
+        return check;
     }
 
 
     /**
-     * Calculate distance between two documenets
-     * For kmeans clustering, calculate the distance between two documents
+     * Calculate centroids from the updated clusters
+     * For kmeans clustering, calculate the centroids among docuemtns in the same cluster
      */
-    public Doc calcCentroid(  ArrayList<Doc> cluster ) {
+    public Doc calcCentroid(ArrayList<Doc> cluster) {
 
         double[] vectorGross = new double[vSize];
-        for(Doc doc : cluster){
-            for(int j = 0 ;  j < vSize; j++){
+        for (Doc doc : cluster) {
+            for (int j = 0; j < vSize; j++) {
                 vectorGross[j] += doc.termVec[j];
             }
         }
 
-        for(int j = 0 ;  j < vSize; j++) vectorGross[j] = vectorGross[j]/vSize;
+        for (int j = 0; j < vSize; j++) vectorGross[j] = vectorGross[j] / cluster.size();
 
         Doc centroid = new Doc();
         centroid.termVec = vectorGross;
@@ -158,55 +192,14 @@ public class Clustering {
      * For kmeans clustering, calculate the distance between two documents
      */
     public double calcDistance(Doc doc1, Doc doc2) {
-
         double vectorDistance = 0.0;
-
-        for (int i = 0; i < doc1.termVec.length; i++) {
-                double doc1tf = doc1.termVec[i];
-                double doc2tf = doc2.termVec[i];
-                vectorDistance = vectorDistance + Math.abs(doc1tf - doc2tf);
+        for (int i = 0; i < vSize; i++) {
+            double doc1tf = doc1.termVec[i];
+            double doc2tf = doc2.termVec[i];
+            vectorDistance = vectorDistance + (doc1tf * doc2tf);
         }
-
         return vectorDistance;
     }
-
-
-//    public void rankSearch(String[] query) {
-//        //To be completed
-//        //System.out.println(docs);
-//        //#6
-//        HashMap<Integer, Double> docs = new HashMap<Integer, Double>();
-//
-//        ArrayList<Doc> docList;
-//        double sc;
-//        for (String term : query) {
-//            int index = termList.indexOf(term);
-//            if (index < 0) continue;
-//            docList = docLists.get(index);
-//            double qtfidf = (1 + Math.log10(1)) * Math.log10(myDocs.length * 1.0) / docList.size();
-//
-//            //Modified
-////            double qtfidf = 1+Math.log10(1);
-//
-//            Doc doc;
-//            //Normalize the vectors
-//
-//            //double score = 0;
-//            for (int i = 0; i < docList.size(); i++) {
-//                doc = docList.get(i);
-//                double score = doc.tw * qtfidf;
-//
-//
-//                if (!docs.containsKey(doc.docId)) {
-//                    docs.put(doc.docId, score);
-//                } else {
-//                    score += docs.get(doc.docId);
-//                    docs.put(doc.docId, score);
-//                }
-//            }
-//        }
-//        System.out.println(docs);
-//    }
 
 
     public static void main(String[] args) {
