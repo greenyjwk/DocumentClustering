@@ -33,11 +33,8 @@ public class Clustering {
      * @param docs
      */
     public void preprocess(String[] docs) {
+        for (int i = 0; i < numClusters; i++) clusters[i] = new ArrayList<>();
 
-        for (int i = 0; i < numClusters; i++) {
-            clusters[i] = new ArrayList<>();
-        }
-        //TO BE COMPLETED
         numDocs = docs.length;
         docList = new Doc[numDocs];
         int termId = 0;
@@ -69,7 +66,7 @@ public class Clustering {
         }
 
         vSize = termId;
-        //compute the tw.idf
+        //compute the tw
         for (Doc doc : docList) {
             double docLength = 0;
             double[] termVec = new double[vSize];
@@ -84,17 +81,11 @@ public class Clustering {
             doc.docLength = Math.sqrt(docLength);
         }
 
-
-        System.out.println(docList.length);
-
-        for (Doc doc : docList) {
-            System.out.println(doc.termIds);
-        }
+        for (Doc doc : docList) System.out.println(doc.termIds);
 
         //assign document 1 and 7 as centroids.
         centroids[0] = docList[0];
         centroids[1] = docList[6];
-
         //Nomalization
     }
 
@@ -104,8 +95,8 @@ public class Clustering {
      * For kmeans clustering, use the first and the seventh documents as the initial centroids
      */
     public void cluster() {
-        //TO BE COMPLETED
 
+        System.out.println("\n\n\nClustering: ");
 
         boolean iterationCheck1 = true;
         boolean iterationCheck2 = true;
@@ -124,13 +115,8 @@ public class Clustering {
             for (int i = 0; i < docList.length; i++) {
                 distToCentroid0 = calcDistance(docList[i], centroids[0]);
                 distToCentroid1 = calcDistance(docList[i], centroids[1]);
-
-
-                if (distToCentroid0 > distToCentroid1) {
-                    clusters[0].add(docList[i]);
-                } else if (distToCentroid0 < distToCentroid1) {
-                    clusters[1].add(docList[i]);
-                }
+                if (distToCentroid0 < distToCentroid1) clusters[0].add(docList[i]);
+                else if (distToCentroid0 > distToCentroid1) clusters[1].add(docList[i]);
             }
 
             // previous centroids
@@ -143,7 +129,6 @@ public class Clustering {
 
             iterationCheck1 = compareCentroids(prevCentroids0, centroids[0].termVec);
             iterationCheck2 = compareCentroids(prevCentroids1, centroids[1].termVec);
-
             iteration++;
         }
     }
@@ -153,10 +138,9 @@ public class Clustering {
      * It determines if iteration needs to stop or continue
      */
     public boolean compareCentroids(double[] currentCentroid, double[] prevCentroid) {
-
         boolean check = false;
         for (int j = 0; j < vSize; j++) {
-            if (currentCentroid[j] != prevCentroid[j]){
+            if (currentCentroid[j] != prevCentroid[j]) {
                 check = true;
                 return check;
             }
@@ -173,13 +157,9 @@ public class Clustering {
 
         double[] vectorGross = new double[vSize];
         for (Doc doc : cluster) {
-            for (int j = 0; j < vSize; j++) {
-                vectorGross[j] += doc.termVec[j];
-            }
+            for (int j = 0; j < vSize; j++) vectorGross[j] += doc.termVec[j];
         }
-
         for (int j = 0; j < vSize; j++) vectorGross[j] = vectorGross[j] / cluster.size();
-
         Doc centroid = new Doc();
         centroid.termVec = vectorGross;
 
@@ -196,9 +176,19 @@ public class Clustering {
         for (int i = 0; i < vSize; i++) {
             double doc1tf = doc1.termVec[i];
             double doc2tf = doc2.termVec[i];
-            vectorDistance = vectorDistance + (doc1tf * doc2tf);
+            vectorDistance = vectorDistance + Math.abs(doc1tf - doc2tf);
         }
         return vectorDistance;
+    }
+
+
+    /**
+     * Calculate distance between two documenets
+     * For kmeans clustering, calculate the distance between two documents
+     */
+    public void hierarchicalClustering() {
+
+
     }
 
 
