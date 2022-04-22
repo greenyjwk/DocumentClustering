@@ -2,7 +2,6 @@ package com.company;
 
 import java.util.*;
 
-
 /**
  * ISTE-612 Lab 5
  * Document clustering
@@ -81,8 +80,6 @@ public class Clustering {
             doc.docLength = Math.sqrt(docLength);
         }
 
-        for (Doc doc : docList) System.out.println(doc.termIds);
-
         //assign document 1 and 7 as centroids.
         centroids[0] = docList[0];
         centroids[1] = docList[6];
@@ -98,6 +95,9 @@ public class Clustering {
 
         System.out.println("\n\n\nClustering: ");
 
+        ArrayList<Integer> clusterId0 ;
+        ArrayList<Integer> clusterId1 ;
+
         boolean iterationCheck1 = true;
         boolean iterationCheck2 = true;
         int iteration = 1;
@@ -106,18 +106,29 @@ public class Clustering {
             System.out.println("Iteration " + iteration);
             System.out.println("Centroid 0 " + centroids[0]);
             System.out.println("Centroid 1 " + centroids[1]);
-            System.out.println("\n\n");
 
+            clusterId0 = new ArrayList<>();
+            clusterId1 = new ArrayList<>();
             clusters[0] = new ArrayList();
             clusters[1] = new ArrayList();
-            double distToCentroid0 = 0.0;
-            double distToCentroid1 = 0.0;
+            double distToCentroid0;
+            double distToCentroid1;
             for (int i = 0; i < docList.length; i++) {
                 distToCentroid0 = calcDistance(docList[i], centroids[0]);
                 distToCentroid1 = calcDistance(docList[i], centroids[1]);
-                if (distToCentroid0 < distToCentroid1) clusters[0].add(docList[i]);
-                else if (distToCentroid0 > distToCentroid1) clusters[1].add(docList[i]);
+                if (distToCentroid0 <= distToCentroid1){
+                    clusters[0].add(docList[i]);
+                    clusterId0.add(docList[i].docId);
+                } else if (distToCentroid0 > distToCentroid1) {
+                    clusters[1].add(docList[i]);
+                    clusterId1.add(docList[i].docId);
+                }
             }
+
+            // print cluster id
+            System.out.println("Cluster 1: " + clusterId0);
+            System.out.println("Cluster 2: " + clusterId1);
+            System.out.println("\n\n");
 
             // previous centroids
             double[] prevCentroids0 = centroids[0].termVec;
@@ -220,7 +231,7 @@ public class Clustering {
  */
 class Doc {
     int docId;
-    ArrayList<Integer> termIds;     //
+    ArrayList<Integer> termIds;
     ArrayList<Double> termWeights;  // In lab 5, it means that tfidf
     double[] termVec;
 
