@@ -33,6 +33,10 @@ public class Clustering {
      * @param docs
      */
     public void preprocess(String[] docs) {
+
+        for(int i = 0 ; i < numClusters ; i++){
+            clusters[i] = new ArrayList<>();
+        }
         //TO BE COMPLETED
         numDocs = docs.length;
         docList = new Doc[numDocs];
@@ -63,6 +67,7 @@ public class Clustering {
             docList[docId] = docObj;
             docId++;
         }
+
         vSize = termId;
         //compute the tw.idf
         for (Doc doc : docList) {
@@ -71,10 +76,26 @@ public class Clustering {
             for (int i = 0; i < doc.termIds.size(); i++) {
                 Integer tid = doc.termIds.get(i);
                 double twidf = (1 + Math.log(doc.termWeights.get(i)));
-                doc.termWeights.set(i, twidf);
-                docLength += Math.pow(twidf, 2);
+                doc.termWeights.set(i, twidf);      // tfidf table filled
+                docLength += Math.pow(twidf, 2);    // |d| is given
+                termVec[tid] = twidf;
             }
+            doc.setTermVec(termVec);
+            doc.docLength = Math.sqrt(docLength);
         }
+
+
+
+        System.out.println(docList.length);
+
+        for (Doc doc : docList) {
+            System.out.println(doc.termIds);
+        }
+
+        //assign document 1 and 7 as centroids.
+        centroids[0] = docList[0];
+        centroids[1] = docList[6];
+
         //Nomalization
     }
 
@@ -86,7 +107,106 @@ public class Clustering {
     public void cluster() {
         //TO BE COMPLETED
 
+        for (int i = 0 ; i < docList.length ; i++ ) {
+            double distToCentroid1 = calcDistance(docList[i], centroids[0]);
+            double distToCentroid2 = calcDistance(docList[i], centroids[1]);
+            if (distToCentroid1 > distToCentroid2) {
+                clusters[0].add(docList[i]);
+            }else{
+                clusters[1].add(docList[i]);
+            }
+        }
+
+
+        System.out.println("Cluster 0: " + clusters[0]);
+        System.out.println("Cluster 1: " + clusters[1]);
+
+
+        System.out.println("Updated Centroid");
+        System.out.println(calcCentroid( clusters[0] ));
+        System.out.println(calcCentroid( clusters[1] ));
+
+
+
     }
+
+
+    /**
+     * Calculate distance between two documenets
+     * For kmeans clustering, calculate the distance between two documents
+     */
+    public Doc calcCentroid(  ArrayList<Doc> cluster ) {
+
+        double[] vectorGross = new double[vSize];
+        for(Doc doc : cluster){
+            for(int j = 0 ;  j < vSize; j++){
+                vectorGross[j] += doc.termVec[j];
+            }
+        }
+
+        for(int j = 0 ;  j < vSize; j++) vectorGross[j] = vectorGross[j]/vSize;
+
+        Doc centroid = new Doc();
+        centroid.termVec = vectorGross;
+
+        return centroid;
+    }
+
+
+    /**
+     * Calculate distance between two documenets
+     * For kmeans clustering, calculate the distance between two documents
+     */
+    public double calcDistance(Doc doc1, Doc doc2) {
+
+        double vectorDistance = 0.0;
+
+        for (int i = 0; i < doc1.termVec.length; i++) {
+                double doc1tf = doc1.termVec[i];
+                double doc2tf = doc2.termVec[i];
+                vectorDistance = vectorDistance + Math.abs(doc1tf - doc2tf);
+        }
+
+        return vectorDistance;
+    }
+
+
+//    public void rankSearch(String[] query) {
+//        //To be completed
+//        //System.out.println(docs);
+//        //#6
+//        HashMap<Integer, Double> docs = new HashMap<Integer, Double>();
+//
+//        ArrayList<Doc> docList;
+//        double sc;
+//        for (String term : query) {
+//            int index = termList.indexOf(term);
+//            if (index < 0) continue;
+//            docList = docLists.get(index);
+//            double qtfidf = (1 + Math.log10(1)) * Math.log10(myDocs.length * 1.0) / docList.size();
+//
+//            //Modified
+////            double qtfidf = 1+Math.log10(1);
+//
+//            Doc doc;
+//            //Normalize the vectors
+//
+//            //double score = 0;
+//            for (int i = 0; i < docList.size(); i++) {
+//                doc = docList.get(i);
+//                double score = doc.tw * qtfidf;
+//
+//
+//                if (!docs.containsKey(doc.docId)) {
+//                    docs.put(doc.docId, score);
+//                } else {
+//                    score += docs.get(doc.docId);
+//                    docs.put(doc.docId, score);
+//                }
+//            }
+//        }
+//        System.out.println(docs);
+//    }
 
 
     public static void main(String[] args) {
@@ -117,9 +237,11 @@ public class Clustering {
  */
 class Doc {
     int docId;
-    ArrayList<Integer> termIds;
-    ArrayList<Double> termWeights;
+    ArrayList<Integer> termIds;     //
+    ArrayList<Double> termWeights;  // In lab 5, it means that tfidf
     double[] termVec;
+
+    double docLength;
 
     public Doc() {
 
@@ -142,5 +264,4 @@ class Doc {
         }
         return docString + "]";
     }
-
 }
