@@ -14,7 +14,6 @@ public class Clustering {
     int vSize;
     Doc[] docList;
     HashMap<String, Integer> termIdMap;
-
     ArrayList<Doc>[] clusters;
     Doc[] centroids;
 
@@ -25,10 +24,8 @@ public class Clustering {
         termIdMap = new HashMap<String, Integer>();
     }
 
-
     /**
      * Load the documents to build the vector representations
-     *
      * @param docs
      */
     public void preprocess(String[] docs) {
@@ -95,8 +92,8 @@ public class Clustering {
 
         System.out.println("\n\n\nClustering: ");
 
-        ArrayList<Integer> clusterId0 ;
-        ArrayList<Integer> clusterId1 ;
+        ArrayList<Integer> clusterId0;
+        ArrayList<Integer> clusterId1;
 
         boolean iterationCheck1 = true;
         boolean iterationCheck2 = true;
@@ -104,8 +101,8 @@ public class Clustering {
         while (iterationCheck1 || iterationCheck2) {
 
             System.out.println("Iteration " + iteration);
-            System.out.println("Centroid 0 " + centroids[0]);
-            System.out.println("Centroid 1 " + centroids[1]);
+            System.out.println("Centroid 1 " + centroids[0]);
+            System.out.println("Centroid 2 " + centroids[1]);
 
             clusterId0 = new ArrayList<>();
             clusterId1 = new ArrayList<>();
@@ -116,7 +113,7 @@ public class Clustering {
             for (int i = 0; i < docList.length; i++) {
                 distToCentroid0 = calcDistance(docList[i], centroids[0]);
                 distToCentroid1 = calcDistance(docList[i], centroids[1]);
-                if (distToCentroid0 <= distToCentroid1){
+                if (distToCentroid0 <= distToCentroid1) {
                     clusters[0].add(docList[i]);
                     clusterId0.add(docList[i].docId);
                 } else if (distToCentroid0 > distToCentroid1) {
@@ -147,6 +144,8 @@ public class Clustering {
     /**
      * compare the centroids to check if it remains same from the previous centroids.
      * It determines if iteration needs to stop or continue
+     * @param currentCentroid,
+     * @param prevCentroid
      */
     public boolean compareCentroids(double[] currentCentroid, double[] prevCentroid) {
         boolean check = false;
@@ -163,6 +162,7 @@ public class Clustering {
     /**
      * Calculate centroids from the updated clusters
      * For kmeans clustering, calculate the centroids among docuemtns in the same cluster
+     * @param cluster
      */
     public Doc calcCentroid(ArrayList<Doc> cluster) {
 
@@ -181,6 +181,8 @@ public class Clustering {
     /**
      * Calculate distance between two documenets
      * For kmeans clustering, calculate the distance between two documents
+     * @param doc1
+     * @param doc2
      */
     public double calcDistance(Doc doc1, Doc doc2) {
         double vectorDistance = 0.0;
@@ -198,8 +200,31 @@ public class Clustering {
      * For kmeans clustering, calculate the distance between two documents
      */
     public void hierarchicalClustering() {
+        ArrayList<Integer> clusterId0 = new ArrayList<>();
+        ArrayList<Integer> clusterId1 = new ArrayList<>();
 
-
+        HashSet<Integer> skipNode = new HashSet<>();
+        for(int idx = 0; idx < 5; idx++){
+            int id1 = 0;
+            int id2 = 0;
+            double closest = 100.0;
+            double distance = 100.0;
+            for (int i = 0; i < docList.length; i++) {
+                for (int j = 0; j < docList.length; j++) {
+                    if (j == i) continue;
+                    distance = calcDistance(docList[i], docList[j]);
+                    if (distance <= closest) {
+                        closest = distance;
+                        id1 = j;
+                        id2 = i;
+                    }
+                }
+            }
+            skipNode.add(id1);
+            skipNode.add(id2);
+            clusterId0.add(id1);
+            clusterId0.add(id2);
+        }
     }
 
 
@@ -221,7 +246,6 @@ public class Clustering {
         for (int i = 0; i < c.docList.length; i++) {
             System.out.println(c.docList[i]);
         }
-
         c.cluster();
     }
 }
